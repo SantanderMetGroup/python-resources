@@ -420,6 +420,11 @@ def interpolation(
     else:
         ds_dest = generate_destination_grid(x=lon_values, y=lat_values)
 
+    # Add mask to the referece and destination datasets
+    dims = [dim for dim in ds_ref[var_name].dims if not dim in ['x', 'y']]
+    ds_ref["mask"] = xr.where(~np.isnan(ds_ref[var_name].mean(dims)), 1, 0) # set nan equal to 0 and 1 for the rest
+    ds_dest["mask"] = xr.where(~np.isnan(ds_dest['lon']), 1, 1) # set all values equal to 1
+
     # Interpolation
     regridder = xe.Regridder(
         ds_ref, ds_dest, interpolation_method, periodic=True, unmapped_to_nan=True
