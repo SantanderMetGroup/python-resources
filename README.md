@@ -15,7 +15,5 @@ To date there are the following modules:
 Scripts and (jupyter) notebooks are provided in [Python](https://www.python.org/) to ensure reproducibility and reusability of the results. The simplest way to match all these requirements is by using a dedicated [conda](https://docs.conda.io) environment, which can be easily installed by issuing:
 
 ```sh
-conda create -n python-resources
-conda activate python-resources
-conda env update --file environmet.yml --prune
+conda create --name python_resources xesmf xarray netcdf4 dask numpy pandas tqdm cartopy matplotlib scipy jupyter
 ```
