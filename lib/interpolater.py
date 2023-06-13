@@ -164,6 +164,10 @@ def generate_reference_grid(ds: xr.Dataset, var_name: str) -> xr.Dataset:
             dim = "x"
         elif lat_name == dim:
             dim = "y"
+        elif 'rlon' == dim:
+            dim = "x"
+        elif 'rlat' == dim:
+            dim = "y"
         new_dims.append(dim)
     # Create new xarray
     ds_input = xr.Dataset(
@@ -270,7 +274,7 @@ def make_cf_compliant(
     -------
     grid : xr.Dataset
         The CF-compliant interpolated dataset.
-    """
+    """    
     # Check longitud or latitude variable name
     if [var for var in ds.variables if "lon" == var]:
         lon_name = "lon"
@@ -287,6 +291,10 @@ def make_cf_compliant(
         if lon_name == dim:
             dim = "lon"
         elif lat_name == dim:
+            dim = "lat"
+        elif 'rlon' == dim:
+            dim = "lon"
+        elif 'rlat' == dim:
             dim = "lat"
         new_dims.append(dim)
 
@@ -427,8 +435,10 @@ def interpolation(
 
     # Interpolation
     regridder = xe.Regridder(
-        ds_ref, ds_dest, interpolation_method, periodic=True, unmapped_to_nan=True
+        ds_ref, ds_dest, interpolation_method, periodic=True, unmapped_to_nan=True,
+        ignore_degenerate=True
     )
+    ## ignore_degenerate (bool) – Ignore degenerate cells when checking the input Grids or   Meshes for errors. If this is set to True, then the regridding proceeds, but degenerate cells will be skipped. If set to False, a degenerate cell produces an error. This currently only applies to CONSERVE, other regrid methods currently always skip degenerate cells. If None, defaults to False.
     ds_inter = regridder(ds_ref)
     ds_output = make_cf_compliant(ds, ds_dest, ds_inter, var_name)
 
