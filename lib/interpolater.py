@@ -367,11 +367,16 @@ def make_cf_compliant(
         }
     # Generate dataset
     grid = xr.Dataset.from_dict(xr_dict)
-    # Add plev/ensemble
-    if "plev" in ds.variables:
-        grid = grid.assign(plev=ds.plev)
-    if "ensemble" in ds.variables:
-        grid = grid.assign(ensemble=ds.ensemble)
+    # heredate fill/missing value
+    for var in grid.variables:
+        if var in ds.variables:
+            for snf in ['missing_value', 'fill_value']:
+                if snf in ds[var].encoding:
+                    grid[var].encoding[snf] = ds[var].encoding[snf]
+    # Add plev/ensemble/height
+    for vrr in ['plev', 'ensemble', 'height']:
+        if vrr in ds.variables:
+            grid = grid.assign(plev=ds[vrr])
     # Add some extra attributes
     grid[var_name].attrs["grid_mapping"] = "crs"
     for attr in ds.attrs:
