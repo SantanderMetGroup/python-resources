@@ -308,7 +308,7 @@ def make_cf_compliant(
             "bnds": 2,
             "lon": len(x_grid),
             "lat": len(y_grid),
-            "time": len(ds.time),
+            #"time": len(ds.time),
         },
         "coords": {
             "lon": {
@@ -333,7 +333,7 @@ def make_cf_compliant(
                 },
                 "data": y_grid,
             },
-            "time": {"dims": ("time",), "attrs": ds.time.attrs, "data": ds.time.data},
+            #"time": {"dims": ("time",), "attrs": ds.time.attrs, "data": ds.time.data},
         },
         "data_vars": {
             var_name: {
@@ -356,7 +356,11 @@ def make_cf_compliant(
             },
         },
     }
-
+    
+    if "time" in ds.variables:
+        xr_dict['dims'].update({"time": len(ds.time)})
+        xr_dict['coords'].update({"time": {"dims": ("time",), "attrs": ds.time.attrs, "data": ds.time.data}})
+    
     # Include time_bnds if the original only if it is available in the original datset
     if "time_bnds" in ds.variables:
         xr_dict["data_vars"]["time_bnds"] = {
