@@ -135,23 +135,17 @@ def generate_reference_grid(ds: xr.Dataset, var_name: str) -> xr.Dataset:
     ds_input : xr.Dataset
         The reference dataset, formatted to be compatible with xESMF.
     """
-    # Check longitud or latitude variable name
-    if [var for var in ds.variables if "lon" == var]:
-        lon_name = "lon"
-        lat_name = "lat"
-    elif [var for var in ds.variables if "longitude" == var]:
-        lon_name = "longitude"
-        lat_name = "latitude"
-    else:
+    # Check if variable longitude exists
+    if not 'longitude' in ds.cf:
         print("longitud or lon not available in variable names")
-        print([var for var in ds.variables])
+        print(ds.cf)
         sys.exit(0)
     # Identify vector (regular) or matrix (irregular) coordinates
-    if len(np.shape(ds[lon_name].values)) == 1:  # if is regular
-        lons, lats = np.meshgrid(ds[lon_name].values, ds[lat_name].values)
+    if len(np.shape(ds.cf['longitude'].values)) == 1:  # if is regular
+        lons, lats = np.meshgrid(ds.cf['longitude'].values, ds.cf['latitude'].values)
     else:
-        lons = ds[lon_name].values
-        lats = ds[lat_name].values
+        lons = ds.cf['longitude'].values
+        lats = ds.cf['latitude'].values
     # Convert 360 to 180
     if (lons > 180).any():
         lons[lons > 180] = lons[lons > 180] - 360
@@ -160,13 +154,9 @@ def generate_reference_grid(ds: xr.Dataset, var_name: str) -> xr.Dataset:
     # Rename dims
     new_dims = []
     for dim in ds[var_name].dims:
-        if lon_name == dim:
+        if "longitude" in ds.cf[dim].standard_name:
             dim = "x"
-        elif lat_name == dim:
-            dim = "y"
-        elif 'rlon' == dim:
-            dim = "x"
-        elif 'rlat' == dim:
+        elif "latitude" in ds.cf[dim].standard_name:
             dim = "y"
         new_dims.append(dim)
     # Create new xarray
@@ -275,26 +265,17 @@ def make_cf_compliant(
     grid : xr.Dataset
         The CF-compliant interpolated dataset.
     """    
-    # Check longitud or latitude variable name
-    if [var for var in ds.variables if "lon" == var]:
-        lon_name = "lon"
-        lat_name = "lat"
-    elif [var for var in ds.variables if "longitude" == var]:
-        lon_name = "longitude"
-        lat_name = "latitude"
-    else:
+    # Check if variable longitude exists
+    if not 'longitude' in ds.cf:
         print("longitud or lon not available in variable names")
-        print([var for var in ds.variables])
+        print(ds.cf)
+        sys.exit(0)
     # Rename dims
     new_dims = []
     for dim in ds[var_name].dims:
-        if lon_name == dim:
+        if "longitude" in ds.cf[dim].standard_name:
             dim = "lon"
-        elif lat_name == dim:
-            dim = "lat"
-        elif 'rlon' == dim:
-            dim = "lon"
-        elif 'rlat' == dim:
+        elif "latitude" in ds.cf[dim].standard_name:
             dim = "lat"
         new_dims.append(dim)
 
@@ -380,7 +361,7 @@ def make_cf_compliant(
     # Add plev/ensemble/height
     for vrr in ['plev', 'ensemble', 'height']:
         if vrr in ds.variables:
-            grid = grid.assign(plev=ds[vrr])
+            grid = grid.assign(**{vrr : ds[vrr]})
     # Add some extra attributes
     grid[var_name].attrs["grid_mapping"] = "crs"
     for attr in ds.attrs:
