@@ -154,9 +154,9 @@ def generate_reference_grid(ds: xr.Dataset, var_name: str) -> xr.Dataset:
     # Rename dims
     new_dims = []
     for dim in ds[var_name].dims:
-        if "longitude" in ds.cf[dim].standard_name:
+        if dim.lower() in ['lon', 'rlon', 'x', 'longitude']:
             dim = "x"
-        elif "latitude" in ds.cf[dim].standard_name:
+        elif dim.lower() in ['lat', 'rlat', 'y', 'latitude']:
             dim = "y"
         new_dims.append(dim)
     # Create new xarray
@@ -273,9 +273,9 @@ def make_cf_compliant(
     # Rename dims
     new_dims = []
     for dim in ds[var_name].dims:
-        if "longitude" in ds.cf[dim].standard_name:
+        if dim.lower() in ['lon', 'rlon', 'x', 'longitude']:
             dim = "lon"
-        elif "latitude" in ds.cf[dim].standard_name:
+        elif dim.lower() in ['lat', 'rlat', 'y', 'latitude']:
             dim = "lat"
         new_dims.append(dim)
 
